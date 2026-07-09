@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta name="apple-mobile-web-app-title" content="Ollie's Tasks"/>
+  <meta name="theme-color" content="#F5F3EF"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <title>Ollie's Goals and Tasks Sorter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #F5F3EF;
+      --bg-card: #FFFFFF;
+      --bg-inset: #ECEAE5;
+      --orange: #E8731A;
+      --orange-light: #FFF3E8;
+      --orange-dim: rgba(232,115,26,0.15);
+      --orange-hover: #D4650F;
+      --charcoal: #2D2D2D;
+      --text-secondary: #5A5A5A;
+      --text-faint: #8A8A8A;
+      --border: #E0DDD8;
+      --border-light: #ECEAE5;
+      --danger: #D94040;
+      --danger-light: #FFF0F0;
+      --success: #2E8B57;
+      --shadow: 0 2px 8px rgba(0,0,0,0.06);
+      --shadow-lg: 0 4px 16px rgba(0,0,0,0.10);
+      --radius: 14px;
+      --radius-sm: 10px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
+    html, body { height: 100%; overscroll-behavior: none }
+    html { font-size: clamp(16px, 1.8vw, 22px) }
+    body {
+      font-family: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, sans-serif;
+      background: var(--bg); color: var(--charcoal);
+      min-height: 100dvh; line-height: 1.5; letter-spacing: 0.01em;
+      -webkit-text-size-adjust: 100%;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      padding-left: env(safe-area-inset-left, 0px);
+      padding-right: env(safe-area-inset-right, 0px);
+    }
+    ::-webkit-scrollbar { width: 4px }
+    ::-webkit-scrollbar-track { background: transparent }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px }
+
+    /* ── Header ── */
+    .header {
+      position: sticky; top: 0; z-index: 50;
+      background: var(--bg);
+      border-bottom: 2px solid var(--border);
+      padding: 1rem 1.25rem 0.75rem;
+      padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+    }
+    .header-inner { max-width: 640px; margin: 0 auto }
+    .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem }
+    .app-title {
+      font-size: clamp(1.1rem, 2.4vw, 1.5rem);
+      font-weight: 800; color: var(--charcoal); line-height: 1.2;
+    }
+    .app-title span { color: var(--orange) }
+    .app-date {
+      font-size: clamp(0.65rem, 1.1vw, 0.8rem);
+      color: var(--text-faint); margin-top: 0.15rem;
+    }
+    .btn-row { display: flex; gap: 0.4rem }
+    .ghost-btn {
+      background: var(--bg-card); border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); padding: 0.35rem 0.65rem;
+      font-size: clamp(0.6rem, 1vw, 0.75rem); font-weight: 700;
+      color: var(--text-faint); cursor: pointer; font-family: inherit;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .ghost-btn:active { background: var(--orange-dim); border-color: var(--orange); color: var(--orange) }
+    .ghost-btn.danger { color: var(--danger) }
+    .ghost-btn.danger:active { background: var(--danger-light); border-color: var(--danger) }
+
+    /* ── Tabs ── */
+    .tab-bar { display: flex; gap: 0.4rem }
+    .tab {
+      flex: 1; padding: 0.55rem 0; text-align: center;
+      font-size: clamp(0.8rem, 1.5vw, 1rem); font-weight: 700;
+      color: var(--text-faint); background: var(--bg-card);
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      cursor: pointer; font-family: inherit; transition: all 0.15s;
+    }
+    .tab.active { color: var(--orange); border-color: var(--orange); background: var(--orange-light) }
+    .tab.disabled { opacity: 0.4; cursor: default }
+
+    /* ── Body ── */
+    #body {
+      max-width: 640px; margin: 0 auto;
+      padding: 0.75rem 1.25rem 7rem;
+      padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+    }
+    .hint {
+      font-size: clamp(0.75rem, 1.3vw, 0.9rem);
+      color: var(--text-faint); margin-bottom: 1rem; line-height: 1.5;
+    }
+    .hint strong { color: var(--orange); font-weight: 700 }
+
+    /* ── Category sections ── */
+    .cat-section { margin-bottom: 1.25rem }
+    .cat-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem }
+    .cat-dot { width: 0.4rem; height: 0.4rem; border-radius: 50%; flex-shrink: 0 }
+    .cat-name {
+      font-size: clamp(0.65rem, 1.1vw, 0.8rem); font-weight: 800;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint);
+    }
+
+    /* ── Task cards ── */
+    .card {
+      display: flex; align-items: center; gap: 0.7rem;
+      background: var(--bg-card); border: 1.5px solid var(--border-light);
+      box-shadow: var(--shadow); border-radius: var(--radius);
+      padding: 0.8rem 0.9rem; margin-bottom: 0.5rem;
+      transition: box-shadow 0.15s, border-color 0.15s;
+    }
+    .card:active { box-shadow: var(--shadow-lg); border-color: var(--orange) }
+    .task-text {
+      flex: 1; font-size: clamp(0.9rem, 1.7vw, 1.2rem);
+      line-height: 1.4; word-break: break-word;
+    }
+    .task-text.done { color: var(--text-faint); text-decoration: line-through }
+    .task-cat-label {
+      font-size: clamp(0.6rem, 1vw, 0.75rem);
+      color: var(--text-faint); margin-top: 0.15rem;
+    }
+    .task-origin {
+      font-size: clamp(0.6rem, 1vw, 0.72rem);
+      color: var(--text-faint); margin-top: 0.15rem;
+    }
+
+    /* Full list Select button */
+    .select-btn {
+      flex-shrink: 0; padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--orange); background: var(--orange-light);
+      color: var(--orange); font-family: inherit;
+      font-size: clamp(0.7rem, 1.2vw, 0.85rem); font-weight: 700;
+      cursor: pointer; white-space: nowrap; transition: all 0.15s;
+    }
+    .select-btn:active { background: var(--orange); color: #fff }
+    .select-btn.selected {
+      background: var(--orange); color: #fff;
+      border-color: var(--orange);
+    }
+
+    /* ── Shortlist cards ── */
+    .shortlist-area {
+      padding: 0 clamp(0.5rem, 3vw, 1.5rem); /* generous gutters for scroll safety */
+    }
+    .focus-card {
+      touch-action: pan-y; /* allow vertical scroll, drag only via handle */
+      -webkit-user-select: none; user-select: none;
+    }
+    .focus-card.over {
+      border-color: var(--orange); border-style: dashed;
+      box-shadow: var(--shadow-lg);
+    }
+    .focus-card.dragging { opacity: 0.4; transform: scale(0.97) }
+
+    .drag-handle {
+      color: var(--text-faint); font-size: 1.1rem; cursor: grab;
+      flex-shrink: 0; line-height: 1; letter-spacing: 2px;
+      user-select: none; -webkit-user-select: none;
+      touch-action: none; /* handle captures touch for drag */
+    }
+    .drag-handle:active { cursor: grabbing }
+
+    /* Shortlist action buttons — remove on LEFT, done on RIGHT */
+    .shortlist-actions { display: flex; gap: 0.35rem; flex-shrink: 0; align-items: center }
+    .remove-btn {
+      width: 1.8rem; height: 1.8rem; border-radius: 0.5rem;
+      border: 1.5px solid var(--border); background: none;
+      color: var(--text-faint); font-size: 0.9rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .remove-btn:active { background: var(--danger-light); border-color: var(--danger); color: var(--danger) }
+    .done-btn {
+      border: 2px solid var(--success); border-radius: 0.5rem;
+      background: none; color: var(--success);
+      cursor: pointer; display: flex; align-items: center; gap: 0.25rem;
+      padding: 0.25rem 0.4rem;
+      font-family: inherit; font-size: clamp(0.65rem, 1.1vw, 0.8rem); font-weight: 700;
+      transition: all 0.15s; flex-shrink: 0; white-space: nowrap;
+    }
+    .done-btn:active { background: var(--success); color: #fff }
+    .done-square {
+      width: 1em; height: 1em; border: 2px solid currentColor;
+      border-radius: 3px; flex-shrink: 0;
+    }
+    .done-btn-label { display: none }
+    @media (min-width: 600px) {
+      .done-btn-label { display: inline }
+      .done-btn { padding: 0.3rem 0.6rem }
+    }
+
+    /* ── Build Shortlist floating bar ── */
+    .bottom-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
+      padding: 0.75rem 1.25rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+      display: flex; align-items: center; gap: 0.75rem;
+      pointer-events: none;
+      max-width: 640px; margin: 0 auto;
+    }
+    .build-btn {
+      flex: 1; background: var(--orange); color: #fff;
+      border: none; border-radius: var(--radius);
+      padding: 0.85rem 1rem;
+      font-family: inherit; font-size: clamp(0.85rem, 1.5vw, 1.05rem); font-weight: 800;
+      cursor: pointer; box-shadow: var(--shadow-lg);
+      transition: all 0.15s; pointer-events: auto;
+      letter-spacing: 0.02em;
+    }
+    .build-btn:active { background: var(--orange-hover); transform: scale(0.97) }
+    .build-btn.inactive {
+      background: var(--bg-inset); color: var(--text-faint);
+      box-shadow: none; cursor: default;
+    }
+
+    .fab {
+      width: 3.2rem; height: 3.2rem; border-radius: 50%;
+      background: var(--charcoal); color: #fff;
+      border: none; font-size: 1.5rem; line-height: 1;
+      cursor: pointer; box-shadow: var(--shadow-lg);
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: auto; flex-shrink: 0; transition: all 0.15s;
+    }
+    .fab:active { background: var(--orange); transform: scale(0.9) }
+
+    .shortlist-bottom-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
+      padding: 0.75rem 1.25rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+      display: flex; justify-content: flex-end;
+      pointer-events: none;
+      max-width: 640px; margin: 0 auto;
+    }
+
+    /* ── Add more section (in shortlist view) ── */
+    .add-more-section {
+      margin-top: 1.5rem; border-top: 2px solid var(--border-light);
+      padding-top: 1rem;
+    }
+    .add-more-label {
+      font-size: clamp(0.6rem, 1vw, 0.75rem); font-weight: 800;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-faint); margin-bottom: 0.5rem;
+    }
+    .add-more-btn {
+      padding: 0.3rem 0.6rem; border-radius: var(--radius-sm);
+      border: 1.5px solid var(--orange); background: var(--orange-light);
+      color: var(--orange); font-size: clamp(0.65rem, 1vw, 0.8rem);
+      font-weight: 700; cursor: pointer; font-family: inherit;
+      white-space: nowrap;
+    }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.35); backdrop-filter: blur(4px);
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    .modal {
+      background: var(--bg-card); box-shadow: var(--shadow-lg);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
+      width: 100%; max-width: 640px;
+      animation: slideUp 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    @keyframes slideUp { from { transform: translateY(60px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+    .modal-title {
+      font-size: clamp(1rem, 1.8vw, 1.2rem); font-weight: 800;
+      color: var(--charcoal); margin-bottom: 1rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal-close {
+      background: none; border: none; color: var(--text-faint);
+      font-size: 1.4rem; cursor: pointer; line-height: 1;
+    }
+    .modal-field { position: relative; margin-bottom: 0.75rem }
+    .modal-input {
+      width: 100%; border: 2px solid var(--border); border-radius: var(--radius-sm);
+      padding: 0.85rem 3.2rem 0.85rem 0.85rem;
+      font-family: inherit; font-size: clamp(0.9rem, 1.6vw, 1.1rem);
+      color: var(--charcoal); background: var(--bg);
+      outline: none; transition: border-color 0.15s;
+      -webkit-user-select: text; user-select: text; touch-action: auto;
+    }
+    .modal-input:focus { border-color: var(--orange) }
+    .modal-input::placeholder { color: var(--text-faint) }
+
+    /* Toggle row */
+    .toggle-row {
+      display: flex; align-items: center; gap: 0.7rem;
+      margin-bottom: 1rem; cursor: pointer; user-select: none;
+    }
+    .toggle-track {
+      width: 2.6rem; height: 1.5rem; border-radius: 0.75rem;
+      background: var(--bg-inset); border: 1.5px solid var(--border);
+      position: relative; flex-shrink: 0; transition: all 0.2s;
+    }
+    .toggle-track.on { background: var(--orange); border-color: var(--orange) }
+    .toggle-thumb {
+      position: absolute; top: 3px; width: 1rem; height: 1rem;
+      border-radius: 50%; background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2); transition: left 0.2s;
+    }
+    .toggle-label {
+      font-size: clamp(0.75rem, 1.3vw, 0.9rem); color: var(--text-secondary);
+    }
+
+    /* Mic button */
+    .mic-btn {
+      position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
+      width: 2.2rem; height: 2.2rem; border-radius: 50%;
+      background: var(--orange-light); border: 2px solid var(--orange);
+      color: var(--orange); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .mic-btn:active, .mic-btn.listening { background: var(--orange); color: #fff }
+    .mic-btn.listening { animation: mic-pulse 1s infinite }
+    @keyframes mic-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 var(--orange-dim) }
+      50% { box-shadow: 0 0 0 8px transparent }
+    }
+    .mic-btn svg { width: 1.1rem; height: 1.1rem }
+    .mic-btn.hidden { display: none }
+
+    .modal-save-btn {
+      width: 100%; padding: 0.85rem; border-radius: var(--radius);
+      border: none; font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+      font-weight: 800; font-family: inherit; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .modal-save-btn.ready { background: var(--orange); color: #fff; box-shadow: var(--shadow-lg) }
+    .modal-save-btn.not-ready { background: var(--bg-inset); color: var(--text-faint); cursor: default }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center; padding: 3rem 1rem; color: var(--text-faint);
+      font-size: clamp(0.85rem, 1.4vw, 1rem); line-height: 1.6;
+    }
+    .empty-btn {
+      margin-top: 1rem; background: var(--bg-card); border: 1.5px solid var(--border);
+      box-shadow: var(--shadow); border-radius: var(--radius);
+      padding: 0.7rem 1.5rem; color: var(--charcoal);
+      font-size: clamp(0.8rem, 1.3vw, 0.95rem); font-weight: 700;
+      cursor: pointer; font-family: inherit;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 300;
+      background: var(--charcoal); color: #fff;
+      padding: 0.6rem 1.2rem; border-radius: var(--radius);
+      font-size: clamp(0.75rem, 1.2vw, 0.85rem); font-weight: 700;
+      box-shadow: var(--shadow-lg); opacity: 0; transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1 }
+
+    /* ── Responsive ── */
+    @media (min-width: 768px) {
+      #body { padding-left: 2rem; padding-right: 2rem }
+      .header { padding-left: 2rem; padding-right: 2rem }
+      .shortlist-area { padding: 0 2rem }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header" id="header"></div>
+<div id="body"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═════════════════════════════════════════════
+   CONFIG — matches Andi's app credentials
+   ═════════════════════════════════════════════ */
+const API_BASE = 'https://syujfvdfgvgsawqbzifr.supabase.co/functions/v1';
+const APP_TOKEN = '9f2d7a4c1e8b6f3a0d5c2e9b7a4f1d8c6e3b0a7f5d2c9e6b3a0f7d4c1e8b5a2';
+const LEGACY_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5dWpmdmRmZ3Znc2F3cWJ6aWZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTE2MjYsImV4cCI6MjA5NjI2NzYyNn0.5NiyYi11K-RhwaatxYm1Mf1kb2LF0wndxM1Sscqp3aM';
+
+const OLLIE = 'ollie';
+const LS_KEY = 'ollie_task_sorter_v1';
+const TODAY = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+const CAT_COLORS = {
+  '🏠 Household': '#f59e0b', '👨‍👩‍👧‍👦 Family': '#ec4899',
+  '⚖️ Legal & Finance': '#8b5cf6', '🧬 Health & Labs': '#10b981',
+  '💻 Tech & Open Brain': '#3b82f6', '📋 Personal': '#6366f1',
+  '📚 School': '#0ea5e9', '🎮 Fun': '#f97316'
+};
+
+/* ═════════════════════════════════════════════
+   API HELPERS (match Andi's app patterns)
+   ═════════════════════════════════════════════ */
+function apiHeaders(json) {
+  const h = { 'x-app-token': APP_TOKEN, 'apikey': LEGACY_ANON_KEY, 'Authorization': 'Bearer ' + LEGACY_ANON_KEY };
+  if (json) h['Content-Type'] = 'application/json';
+  return h;
+}
+
+async function fetchTasks() {
+  const res = await fetch(API_BASE + '/get-tasks', { headers: apiHeaders() });
+  if (!res.ok) throw new Error('get-tasks responded with ' + res.status);
+  const data = await res.json();
+  return (data.tasks || [])
+    .filter(t => t.speaker === OLLIE || t.for_person === OLLIE)
+    .map(t => ({
+      id: t.id,
+      text: t.task_title || t.content,
+      rawContent: t.content,
+      cat: t.category || '📋 Personal',
+      speaker: t.speaker || null,
+      for_person: t.for_person || null
+    }));
+}
+
+async function markTaskDone(id) {
+  const res = await fetch(API_BASE + '/mark-tasks-done', {
+    method: 'POST', headers: apiHeaders(true),
+    body: JSON.stringify({ id })
+  });
+  if (!res.ok) throw new Error('mark-tasks-done responded with ' + res.status);
+  return res.json();
+}
+
+async function createTask(content) {
+  const res = await fetch(API_BASE + '/create-task', {
+    method: 'POST', headers: apiHeaders(true),
+    body: JSON.stringify({ content, for_person: 'ollie' })
+  });
+  if (!res.ok) throw new Error('create-task responded with ' + res.status);
+  return res.json();
+}
+
+/* ═════════════════════════════════════════════
+   STATE
+   ═════════════════════════════════════════════ */
+function loadState() { try { const r = localStorage.getItem(LS_KEY); return r ? JSON.parse(r) : null } catch { return null } }
+function persist(s) { try { localStorage.setItem(LS_KEY, JSON.stringify(s)) } catch {} }
+function hardReset() { localStorage.removeItem(LS_KEY); location.reload() }
+
+const saved = loadState();
+let STATE = {
+  mode: saved?.mode ?? 'review',
+  tasks: [],
+  loading: true,
+  loadError: null,
+  selected: new Set(saved?.selected ?? []),
+  shortlist: saved?.shortlist ?? [],
+  modalOpen: false,
+  modalDefaultToday: false
+};
+
+function save() { persist({ mode: STATE.mode, selected: [...STATE.selected], shortlist: STATE.shortlist }) }
+function setState(patch) { Object.assign(STATE, patch); save(); render() }
+
+async function loadTasks() {
+  setState({ loading: true, loadError: null });
+  try {
+    const tasks = await fetchTasks();
+    const validIds = new Set(tasks.map(t => t.id));
+    const shortlist = STATE.shortlist.filter(id => validIds.has(id));
+    const selected = new Set([...STATE.selected].filter(id => validIds.has(id)));
+    setState({ tasks, loading: false, shortlist, selected });
+  } catch (err) {
+    console.error(err);
+    setState({ loading: false, loadError: String(err.message || err) });
+  }
+}
+
+/* ═════════════════════════════════════════════
+   DOM HELPERS (same pattern as Andi's app)
+   ═════════════════════════════════════════════ */
+function el(tag, props, ...children) {
+  const e = document.createElement(tag);
+  if (props) Object.entries(props).forEach(([k, v]) => {
+    if (k === 'style' && typeof v === 'object') Object.assign(e.style, v);
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (k === 'className') e.className = v;
+    else if (k === 'dataset') Object.entries(v).forEach(([dk, dv]) => e.dataset[dk] = dv);
+    else e.setAttribute(k, v);
+  });
+  children.flat().forEach(c => {
+    if (c == null || c === false) return;
+    e.appendChild(typeof c === 'string' || typeof c === 'number' ? document.createTextNode(c) : c);
+  });
+  return e;
+}
+const div = (p, ...c) => el('div', p, ...c);
+const span = (p, ...c) => el('span', p, ...c);
+const btn = (p, ...c) => el('button', p, ...c);
+const p_ = (p, ...c) => el('p', p, ...c);
+const h1 = (p, ...c) => el('h1', p, ...c);
+const h2 = (p, ...c) => el('h2', p, ...c);
+const inp = (p) => el('input', p);
+
+/* ═════════════════════════════════════════════
+   DRAG & DROP (shortlist reorder)
+   ═════════════════════════════════════════════ */
+const drag = { active: false, id: null, startY: 0, node: null };
+
+function touchStart(e, id) {
+  e.preventDefault(); e.stopPropagation();
+  const t = e.touches[0];
+  drag.active = true; drag.id = id; drag.startY = t.clientY;
+  drag.node = e.currentTarget;
+  drag.node.style.opacity = '0.4';
+  drag.node.style.transform = 'scale(1.02)';
+  drag.node.style.zIndex = '999';
+}
+
+function touchMove(e) {
+  if (!drag.active) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  drag.node.style.transform = `translateY(${t.clientY - drag.startY}px) scale(1.02)`;
+  document.querySelectorAll('[data-drag-id]').forEach(n => {
+    if (n === drag.node) return;
+    const r = n.getBoundingClientRect();
+    n.classList.toggle('over', t.clientY >= r.top && t.clientY <= r.bottom);
+  });
+}
+
+function touchEnd(e) {
+  if (!drag.active) return;
+  drag.active = false;
+  const t = e.changedTouches[0];
+  drag.node.style.transform = '';
+  drag.node.style.opacity = '';
+  drag.node.style.zIndex = '';
+  document.querySelectorAll('[data-drag-id]').forEach(n => n.classList.remove('over'));
+
+  let targetId = null;
+  document.querySelectorAll('[data-drag-id]').forEach(n => {
+    if (n === drag.node) return;
+    const r = n.getBoundingClientRect();
+    if (t.clientY >= r.top && t.clientY <= r.bottom) targetId = n.dataset.dragId;
+  });
+
+  if (targetId && targetId !== drag.id) {
+    const arr = [...STATE.shortlist];
+    const fi = arr.indexOf(drag.id), ti = arr.indexOf(targetId);
+    arr.splice(fi, 1);
+    arr.splice(ti, 0, drag.id);
+    setState({ shortlist: arr });
+  }
+  drag.id = null;
+}
+
+let deskDragId = null;
+
+/* ═════════════════════════════════════════════
+   VOICE-TO-TEXT (Web Speech API)
+   ═════════════════════════════════════════════ */
+let recognition = null;
+let isListening = false;
+let micInputEl = null;
+
+function initSpeech() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return false;
+  recognition = new SR();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = function(e) {
+    if (!micInputEl) return;
+    let final = '', interim = '';
+    for (let i = 0; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    const existing = micInputEl.dataset.preVoice || '';
+    if (final) {
+      micInputEl.value = (existing ? existing + ' ' : '') + final;
+      micInputEl.dataset.preVoice = micInputEl.value;
+    } else {
+      micInputEl.value = (existing ? existing + ' ' : '') + interim;
+    }
+    micInputEl.dispatchEvent(new Event('input'));
+  };
+
+  recognition.onstart = function() {
+    isListening = true;
+    const mb = document.getElementById('micBtn');
+    if (mb) mb.classList.add('listening');
+  };
+
+  recognition.onend = function() {
+    isListening = false;
+    const mb = document.getElementById('micBtn');
+    if (mb) mb.classList.remove('listening');
+    if (micInputEl) micInputEl.dataset.preVoice = micInputEl.value;
+  };
+
+  recognition.onerror = function(e) {
+    console.warn('Speech error:', e.error);
+    isListening = false;
+    const mb = document.getElementById('micBtn');
+    if (mb) mb.classList.remove('listening');
+    if (e.error === 'no-speech') toast('No speech detected — try again');
+    else if (e.error === 'not-allowed') toast('Microphone blocked — check browser settings');
+  };
+
+  return true;
+}
+
+async function toggleMic(inputEl) {
+  if (!recognition) return;
+  micInputEl = inputEl;
+  if (isListening) {
+    try { recognition.stop() } catch {}
+    isListening = false;
+    const mb = document.getElementById('micBtn');
+    if (mb) mb.classList.remove('listening');
+    return;
+  }
+  // Request mic permission explicitly (triggers browser prompt, required for iOS Safari)
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(t => t.stop()); // release — SpeechRecognition manages its own
+  } catch (e) {
+    console.warn('Mic permission denied:', e);
+    toast('Allow microphone access in your browser settings');
+    return;
+  }
+  inputEl.dataset.preVoice = inputEl.value;
+  try { recognition.start() } catch (e) { console.warn('Recognition start:', e) }
+}
+
+const hasSpeech = initSpeech();
+
+/* ═════════════════════════════════════════════
+   MODAL — Add Task
+   ═════════════════════════════════════════════ */
+function buildModal() {
+  let text = '', addToShortlist = STATE.modalDefaultToday, saving = false;
+
+  const textInput = inp({ type: 'text', placeholder: 'What do you need to do?', autofocus: 'true', className: 'modal-input' });
+  textInput.style.paddingRight = hasSpeech ? '3.2rem' : '0.85rem';
+  textInput.addEventListener('input', e => { text = e.target.value; updateSave() });
+  textInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSave() });
+
+  const field = div({ className: 'modal-field' });
+  field.appendChild(textInput);
+
+  if (hasSpeech) {
+    const micSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/></svg>';
+    const micBtn = btn({ className: 'mic-btn', id: 'micBtn' });
+    micBtn.innerHTML = micSvg;
+    micBtn.addEventListener('click', () => toggleMic(textInput));
+    field.appendChild(micBtn);
+  }
+
+  const track = div({ className: 'toggle-track' + (addToShortlist ? ' on' : '') });
+  const thumb = div({ className: 'toggle-thumb', style: { left: addToShortlist ? '1.35rem' : '0.25rem' } });
+  track.appendChild(thumb);
+  const toggleRow = div({ className: 'toggle-row' }, track, span({ className: 'toggle-label' }, 'Add to shortlist'));
+  toggleRow.addEventListener('click', () => {
+    addToShortlist = !addToShortlist;
+    track.className = 'toggle-track' + (addToShortlist ? ' on' : '');
+    thumb.style.left = addToShortlist ? '1.35rem' : '0.25rem';
+  });
+
+  const saveBtn = btn({ className: 'modal-save-btn not-ready' }, 'Save Task');
+  saveBtn.addEventListener('click', doSave);
+
+  function updateSave() { if (!saving) saveBtn.className = 'modal-save-btn ' + (text.trim() ? 'ready' : 'not-ready') }
+
+  async function doSave() {
+    if (!text.trim() || saving) return;
+    saving = true;
+    saveBtn.className = 'modal-save-btn not-ready';
+    saveBtn.textContent = 'Saving…';
+    try {
+      const result = await createTask(text.trim());
+      const t = { id: result.id, text: result.task_title || text.trim(), cat: result.category || '📋 Personal', speaker: null, for_person: 'ollie' };
+      const patch = { tasks: [...STATE.tasks, t], modalOpen: false };
+      if (addToShortlist) {
+        patch.shortlist = [...STATE.shortlist, t.id];
+        const s = new Set(STATE.selected); s.add(t.id); patch.selected = s;
+      }
+      setState(patch);
+      toast('Task added ✓');
+    } catch (err) {
+      console.error(err);
+      saving = false;
+      saveBtn.textContent = 'Save Task';
+      updateSave();
+      toast('Could not save — check connection');
+    }
+  }
+
+  const overlay = div({ className: 'modal-overlay' });
+  overlay.addEventListener('click', () => { if (!saving) setState({ modalOpen: false }) });
+  const modal = div({ className: 'modal' });
+  modal.addEventListener('click', e => e.stopPropagation());
+
+  modal.appendChild(div({ className: 'modal-title' },
+    h2({ style: { fontSize: 'inherit', fontWeight: '800', color: 'var(--charcoal)', fontFamily: 'inherit' } }, 'New Task'),
+    btn({ className: 'modal-close', onClick: () => { if (!saving) setState({ modalOpen: false }) } }, '×')
+  ));
+  modal.appendChild(field);
+  modal.appendChild(toggleRow);
+  modal.appendChild(saveBtn);
+  overlay.appendChild(modal);
+
+  requestAnimationFrame(() => requestAnimationFrame(() => textInput.focus()));
+  return overlay;
+}
+
+/* ═════════════════════════════════════════════
+   HEADER
+   ═════════════════════════════════════════════ */
+function buildHeader() {
+  const hdr = document.getElementById('header');
+  hdr.innerHTML = '';
+  const inner = div({ className: 'header-inner' });
+
+  const titleRow = div({ className: 'title-row' });
+  const titleBlock = div({});
+  const titleEl = h1({ className: 'app-title' });
+  titleEl.innerHTML = "<span>Ollie's</span> Goals &amp; Tasks Sorter";
+  titleBlock.appendChild(titleEl);
+  titleBlock.appendChild(p_({ className: 'app-date' }, TODAY));
+  titleRow.appendChild(titleBlock);
+
+  const btnRow = div({ className: 'btn-row' });
+  const clearBtn = btn({ className: 'ghost-btn' }, '↺ Clear Shortlist');
+  clearBtn.addEventListener('click', () => setState({ mode: 'review', selected: new Set(), shortlist: [] }));
+  const resetBtn = btn({ className: 'ghost-btn danger' }, '⊗ Reset');
+  resetBtn.addEventListener('click', hardReset);
+  btnRow.appendChild(clearBtn);
+  btnRow.appendChild(resetBtn);
+  titleRow.appendChild(btnRow);
+  inner.appendChild(titleRow);
+
+  const tabBar = div({ className: 'tab-bar' });
+  const tFull = btn({ className: 'tab' + (STATE.mode === 'review' ? ' active' : '') }, '📋 Full List');
+  tFull.addEventListener('click', () => setState({ mode: 'review' }));
+  const shortCount = STATE.shortlist.length;
+  const tShort = btn({ className: 'tab' + (STATE.mode === 'focus' ? ' active' : '') + (shortCount === 0 ? ' disabled' : '') },
+    '🎯 Shortlist' + (shortCount > 0 ? ` (${shortCount})` : ''));
+  tShort.addEventListener('click', () => { if (shortCount > 0) setState({ mode: 'focus' }) });
+  tabBar.appendChild(tFull);
+  tabBar.appendChild(tShort);
+  inner.appendChild(tabBar);
+
+  hdr.appendChild(inner);
+}
+
+/* ═════════════════════════════════════════════
+   FULL LIST VIEW
+   ═════════════════════════════════════════════ */
+function buildReview() {
+  const wrap = div({});
+
+  if (STATE.loading) {
+    wrap.appendChild(p_({ className: 'hint' }, 'Loading tasks…'));
+    return wrap;
+  }
+  if (STATE.loadError) {
+    const em = div({ className: 'empty-state' });
+    em.appendChild(p_({ style: { color: 'var(--danger)' } }, 'Could not load tasks: ' + STATE.loadError));
+    const rb = btn({ className: 'empty-btn' }, 'Try again');
+    rb.addEventListener('click', loadTasks);
+    em.appendChild(rb);
+    return em;
+  }
+  if (!STATE.tasks.length) {
+    const em = div({ className: 'empty-state' });
+    em.appendChild(p_({}, '🎉 No tasks right now!'));
+    em.appendChild(p_({ style: { marginTop: '0.5rem' } }, 'Use the + button to add one, or tell Alexa.'));
+    return em;
+  }
+
+  wrap.appendChild(p_({ className: 'hint' }, 'Tap ', el('strong', {}, 'Select'), ' to add tasks to your shortlist.'));
+
+  // Group by category dynamically
+  const seen = new Set();
+  const cats = [];
+  STATE.tasks.forEach(t => { if (!seen.has(t.cat)) { seen.add(t.cat); cats.push(t.cat) } });
+
+  cats.forEach(cat => {
+    const items = STATE.tasks.filter(t => t.cat === cat);
+    if (!items.length) return;
+    const dot = CAT_COLORS[cat] || '#94a3b8';
+
+    const sec = div({ className: 'cat-section' });
+    const hdr = div({ className: 'cat-header' });
+    hdr.appendChild(div({ className: 'cat-dot', style: { background: dot } }));
+    hdr.appendChild(span({ className: 'cat-name' }, cat));
+    sec.appendChild(hdr);
+
+    items.forEach(task => {
+      const isSel = STATE.selected.has(task.id);
+      const card = div({ className: 'card' });
+
+      const info = div({ style: { flex: '1' } });
+      info.appendChild(div({ className: 'task-text' }, task.text));
+      if (task.for_person === 'ollie' && task.speaker !== 'ollie') {
+        info.appendChild(div({ className: 'task-origin' }, 'assigned to you'));
+      }
+      card.appendChild(info);
+
+      const b = btn({ className: 'select-btn' + (isSel ? ' selected' : '') }, isSel ? '✓ Selected' : 'Select');
+      b.addEventListener('click', () => {
+        const s = new Set(STATE.selected);
+        s.has(task.id) ? s.delete(task.id) : s.add(task.id);
+        setState({ selected: s });
+      });
+      card.appendChild(b);
+      sec.appendChild(card);
+    });
+    wrap.appendChild(sec);
+  });
+
+  return wrap;
+}
+
+/* ═════════════════════════════════════════════
+   SHORTLIST VIEW
+   ═════════════════════════════════════════════ */
+function buildFocus() {
+  const wrap = div({});
+
+  if (!STATE.shortlist.length) {
+    const em = div({ className: 'empty-state' });
+    em.appendChild(p_({}, '📋 Your shortlist is empty.'));
+    const gb = btn({ className: 'empty-btn' }, 'Go to Full List →');
+    gb.addEventListener('click', () => setState({ mode: 'review' }));
+    em.appendChild(gb);
+    return em;
+  }
+
+  wrap.appendChild(p_({ className: 'hint' }, 'Drag ⠿ to reorder'));
+
+  const list = div({ className: 'shortlist-area' });
+  const taskMap = Object.fromEntries(STATE.tasks.map(t => [t.id, t]));
+
+  STATE.shortlist.forEach(tid => {
+    const task = taskMap[tid];
+    if (!task) return;
+
+    const card = div({ className: 'card focus-card', dataset: { dragId: String(task.id) }, draggable: 'true' });
+
+    // Touch drag via handle
+    const handle = span({ className: 'drag-handle' }, '⠿');
+    handle.addEventListener('touchstart', e => touchStart(e, task.id), { passive: false });
+    handle.addEventListener('touchmove', touchMove, { passive: false });
+    handle.addEventListener('touchend', touchEnd);
+    card.appendChild(handle);
+
+    // Desktop drag on whole card
+    card.addEventListener('dragstart', e => { deskDragId = task.id; e.dataTransfer.effectAllowed = 'move' });
+    card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('over') });
+    card.addEventListener('dragleave', () => card.classList.remove('over'));
+    card.addEventListener('drop', e => {
+      e.preventDefault(); card.classList.remove('over');
+      if (deskDragId === task.id) return;
+      const arr = [...STATE.shortlist];
+      const fi = arr.indexOf(deskDragId), ti = arr.indexOf(task.id);
+      arr.splice(fi, 1); arr.splice(ti, 0, deskDragId);
+      setState({ shortlist: arr });
+    });
+    card.addEventListener('dragend', () => deskDragId = null);
+
+    // Task text
+    const info = div({ style: { flex: '1' } });
+    info.appendChild(div({ className: 'task-text' }, task.text));
+    info.appendChild(div({ className: 'task-cat-label' }, task.cat));
+    card.appendChild(info);
+
+    // Actions: remove (LEFT) then done (RIGHT)
+    const actions = div({ className: 'shortlist-actions' });
+
+    const rb = btn({ className: 'remove-btn' }, '×');
+    rb.addEventListener('click', e => {
+      e.stopPropagation();
+      const s = new Set(STATE.selected); s.delete(task.id);
+      setState({ selected: s, shortlist: STATE.shortlist.filter(id => id !== task.id) });
+    });
+    actions.appendChild(rb);
+
+    const db = btn({ className: 'done-btn' });
+    db.appendChild(div({ className: 'done-square' }));
+    db.appendChild(span({ className: 'done-btn-label' }, 'Mark Done'));
+    db.addEventListener('click', async e => {
+      e.stopPropagation();
+      db.style.opacity = '0.4'; db.style.pointerEvents = 'none';
+      try {
+        await markTaskDone(task.id);
+        const tasks = STATE.tasks.filter(t => t.id !== task.id);
+        const shortlist = STATE.shortlist.filter(id => id !== task.id);
+        const selected = new Set(STATE.selected); selected.delete(task.id);
+        setState({ tasks, shortlist, selected });
+        toast('Done! ✓');
+      } catch (err) {
+        console.error(err); db.style.opacity = ''; db.style.pointerEvents = '';
+        toast('Could not mark done — check connection');
+      }
+    });
+    actions.appendChild(db);
+
+    card.appendChild(actions);
+    list.appendChild(card);
+  });
+
+  wrap.appendChild(list);
+
+  // "Add more" section
+  const extras = STATE.tasks.filter(t => !STATE.selected.has(t.id));
+  if (extras.length) {
+    const sec = div({ className: 'add-more-section' });
+    sec.appendChild(p_({ className: 'add-more-label' }, 'Add more to shortlist'));
+    extras.forEach(task => {
+      const row = div({ className: 'card', style: { opacity: '0.6' } });
+      row.appendChild(div({ className: 'task-text', style: { flex: '1' } }, task.text));
+      const ab = btn({ className: 'add-more-btn' }, '+ Add');
+      ab.addEventListener('click', () => {
+        const s = new Set(STATE.selected); s.add(task.id);
+        setState({ shortlist: [...STATE.shortlist, task.id], selected: s });
+      });
+      row.appendChild(ab);
+      sec.appendChild(row);
+    });
+    wrap.appendChild(sec);
+  }
+
+  return wrap;
+}
+
+/* ═════════════════════════════════════════════
+   RENDER
+   ═════════════════════════════════════════════ */
+function render() {
+  buildHeader();
+  const body = document.getElementById('body');
+  body.innerHTML = '';
+  body.appendChild(STATE.mode === 'review' ? buildReview() : buildFocus());
+
+  // Remove old floating bars
+  document.querySelectorAll('.bottom-bar, .shortlist-bottom-bar').forEach(e => e.remove());
+
+  if (STATE.mode === 'review') {
+    const bar = div({ className: 'bottom-bar' });
+    const buildBtn = btn({
+      className: 'build-btn' + (STATE.selected.size ? '' : ' inactive')
+    }, STATE.selected.size ? `Build Short List Now (${STATE.selected.size})` : 'Select tasks to build your shortlist');
+    buildBtn.addEventListener('click', () => {
+      if (!STATE.selected.size) return;
+      setState({ shortlist: STATE.tasks.filter(t => STATE.selected.has(t.id)).map(t => t.id), mode: 'focus' });
+    });
+    bar.appendChild(buildBtn);
+    const fabBtn = btn({ className: 'fab' }, '＋');
+    fabBtn.addEventListener('click', () => setState({ modalOpen: true, modalDefaultToday: false }));
+    bar.appendChild(fabBtn);
+    document.body.appendChild(bar);
+  } else {
+    const bar = div({ className: 'shortlist-bottom-bar' });
+    const fabBtn = btn({ className: 'fab' }, '＋');
+    fabBtn.addEventListener('click', () => setState({ modalOpen: true, modalDefaultToday: true }));
+    bar.appendChild(fabBtn);
+    document.body.appendChild(bar);
+  }
+
+  // Modal
+  document.querySelectorAll('.modal-overlay').forEach(e => e.remove());
+  if (STATE.modalOpen) document.body.appendChild(buildModal());
+}
+
+/* ═════════════════════════════════════════════
+   TOAST
+   ═════════════════════════════════════════════ */
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+/* ═════════════════════════════════════════════
+   INIT
+   ═════════════════════════════════════════════ */
+render();
+loadTasks();
+</script>
+</body>
+</html>
