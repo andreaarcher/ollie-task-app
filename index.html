@@ -103,7 +103,7 @@
     .ghost-btn.danger:active { background: var(--danger-light); border-color: var(--danger) }
 
     /* ── Tabs ── */
-    .tab-bar { display: flex; gap: 0.4rem }
+    .tab-bar { display: flex; gap: 0.5rem; align-items: center }
     .tab {
       flex: 1; padding: 0.55rem 0; text-align: center;
       font-size: clamp(0.8rem, 1.5vw, 1rem); font-weight: 700;
@@ -113,6 +113,25 @@
     }
     .tab.active { color: var(--orange); border-color: var(--orange); background: var(--orange-light) }
     .tab.disabled { opacity: 0.4; cursor: default }
+    .meme-tab {
+      flex: 0 0 2.4rem !important;
+      width: 2.4rem; height: 2.4rem;
+      border-radius: 50% !important;
+      padding: 0 !important;
+      font-size: 1.2rem !important;
+      display: flex; align-items: center; justify-content: center;
+      align-self: center;
+      animation: meme-wobble 4s ease-in-out infinite;
+    }
+    .meme-tab:active { transform: scale(0.85) !important }
+    @keyframes meme-wobble {
+      0%, 80%, 100% { transform: rotate(0) }
+      83% { transform: rotate(-10deg) }
+      86% { transform: rotate(10deg) }
+      89% { transform: rotate(-6deg) }
+      92% { transform: rotate(4deg) }
+      95% { transform: rotate(0) }
+    }
 
     /* ── Body ── */
     #body {
@@ -1066,11 +1085,6 @@ function buildHeader() {
   titleEl.innerHTML = "<span>Ollie's</span> Goals &amp; Tasks";
   titleLeft.appendChild(titleEl);
 
-  // 🫠 meme button
-  const memeButton = btn({ className: 'meme-btn' }, '🫠');
-  memeButton.addEventListener('click', showMemeModal);
-  titleLeft.appendChild(memeButton);
-
   titleRow.appendChild(titleLeft);
 
   const btnRow = div({ className: 'btn-row' });
@@ -1090,7 +1104,13 @@ function buildHeader() {
   const tShort = btn({ className: 'tab' + (STATE.mode === 'focus' ? ' active' : '') + (shortCount === 0 ? ' disabled' : '') },
     '🎯 Shortlist' + (shortCount > 0 ? ` (${shortCount})` : ''));
   tShort.addEventListener('click', () => { if (shortCount > 0) setState({ mode: 'focus' }) });
+
+  // 🫠 meme button — centred between tabs
+  const memeTab = btn({ className: 'tab meme-tab' }, '🫠');
+  memeTab.addEventListener('click', showMemeModal);
+
   tabBar.appendChild(tFull);
+  tabBar.appendChild(memeTab);
   tabBar.appendChild(tShort);
   inner.appendChild(tabBar);
 
