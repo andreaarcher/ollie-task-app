@@ -487,8 +487,6 @@ const CAT_COLORS = {
   '🎬 Generations of Care': '#f97316'
 };
 
-const MEME_SUBS = ['surrealmemes', 'hmm', 'skamtebord', 'blursedimages', 'me_irl', 'comedyheaven'];
-
 /* ═════════════════════════════════════════════
    API HELPERS
    ═════════════════════════════════════════════ */
@@ -890,41 +888,19 @@ const hasSpeech = initSpeech();
 /* ═════════════════════════════════════════════
    MEME MODAL 🫠
    ═════════════════════════════════════════════ */
-let memeCache = [];
-
-async function fetchMemes() {
-  const sub = MEME_SUBS[Math.floor(Math.random() * MEME_SUBS.length)];
+async function getRandomMeme() {
   try {
-    const res = await fetch(`https://www.reddit.com/r/${sub}/hot.json?limit=50&raw_json=1`, {
-      headers: { 'Accept': 'application/json' }
+    const res = await fetch(API_BASE + '/random-meme', {
+      headers: { 'apikey': LEGACY_ANON_KEY, 'Authorization': 'Bearer ' + LEGACY_ANON_KEY }
     });
-    if (!res.ok) throw new Error('Reddit ' + res.status);
+    if (!res.ok) throw new Error('random-meme responded with ' + res.status);
     const data = await res.json();
-    const posts = (data.data?.children || [])
-      .map(c => c.data)
-      .filter(p =>
-        !p.over_18 &&
-        !p.stickied &&
-        p.post_hint === 'image' &&
-        p.url &&
-        /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(p.url)
-      )
-      .map(p => ({ url: p.url, title: p.title, sub: 'r/' + p.subreddit }));
-    return posts;
+    if (data.error) throw new Error(data.error);
+    return data; // { url, title, sub }
   } catch (err) {
     console.warn('Meme fetch error:', err);
-    return [];
+    return null;
   }
-}
-
-async function getRandomMeme() {
-  if (memeCache.length < 3) {
-    const fresh = await fetchMemes();
-    memeCache.push(...fresh);
-  }
-  if (!memeCache.length) return null;
-  const idx = Math.floor(Math.random() * memeCache.length);
-  return memeCache.splice(idx, 1)[0];
 }
 
 function showMemeModal() {
