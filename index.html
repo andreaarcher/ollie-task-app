@@ -28,7 +28,10 @@
       --border-light: #ECEAE5;
       --danger: #D94040;
       --danger-light: #FFF0F0;
+      --danger-dim: rgba(217,64,64,0.15);
       --success: #2E8B57;
+      --success-light: #EEFBF3;
+      --success-dim: rgba(46,139,87,0.15);
       --shadow: 0 2px 8px rgba(0,0,0,0.06);
       --shadow-lg: 0 4px 16px rgba(0,0,0,0.10);
       --radius: 14px;
@@ -104,7 +107,6 @@
       font-size: clamp(0.75rem, 1.3vw, 0.9rem);
       color: var(--text-faint); margin-bottom: 1rem; line-height: 1.5;
     }
-    .hint strong { color: var(--orange); font-weight: 700 }
 
     /* ── Category sections ── */
     .cat-section { margin-bottom: 1.25rem }
@@ -117,20 +119,18 @@
 
     /* ── Task cards ── */
     .card {
-      display: flex; align-items: center; gap: 0.7rem;
+      display: flex; align-items: center; gap: 0.6rem;
       background: var(--bg-card); border: 1.5px solid var(--border-light);
       box-shadow: var(--shadow); border-radius: var(--radius);
-      padding: 0.8rem 0.9rem; margin-bottom: 0.5rem;
+      padding: 0.75rem 0.85rem; margin-bottom: 0.5rem;
       transition: box-shadow 0.15s, border-color 0.15s;
     }
-    .card:active { box-shadow: var(--shadow-lg); border-color: var(--orange) }
     .task-text {
       flex: 1; font-size: clamp(0.9rem, 1.7vw, 1.2rem);
       line-height: 1.4; word-break: break-word;
     }
-    .task-text.done { color: var(--text-faint); text-decoration: line-through }
     .task-cat-label {
-      font-size: clamp(0.6rem, 1vw, 0.75rem);
+      font-size: clamp(0.6rem, 1vw, 0.72rem);
       color: var(--text-faint); margin-top: 0.15rem;
     }
     .task-origin {
@@ -138,27 +138,50 @@
       color: var(--text-faint); margin-top: 0.15rem;
     }
 
-    /* Full list Select button */
-    .select-btn {
-      flex-shrink: 0; padding: 0.35rem 0.75rem;
-      border-radius: var(--radius-sm);
-      border: 2px solid var(--orange); background: var(--orange-light);
-      color: var(--orange); font-family: inherit;
-      font-size: clamp(0.7rem, 1.2vw, 0.85rem); font-weight: 700;
-      cursor: pointer; white-space: nowrap; transition: all 0.15s;
+    /* ── Action circles ── */
+    .action-circle {
+      width: 2.6rem; height: 2.6rem; border-radius: 50%;
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.15s;
+      font-size: 1.3rem; font-weight: 700; line-height: 1;
     }
-    .select-btn:active { background: var(--orange); color: #fff }
-    .select-btn.selected {
+    .action-circle:active { transform: scale(0.88) }
+
+    /* Orange + circle (add to shortlist) */
+    .circle-add {
       background: var(--orange); color: #fff;
-      border-color: var(--orange);
+      box-shadow: 0 2px 8px var(--orange-dim);
     }
+    .circle-add:active { background: var(--orange-hover) }
+    .circle-add.in-shortlist {
+      background: var(--orange-light); color: var(--orange);
+      box-shadow: none; border: 2px solid var(--orange);
+      font-size: 1.1rem;
+    }
+
+    /* Red − circle (delete / pending_delete) */
+    .circle-delete {
+      background: var(--danger); color: #fff;
+      box-shadow: 0 2px 8px var(--danger-dim);
+    }
+    .circle-delete:active { background: #c03030 }
+
+    /* Green ✓ circle (mark done) */
+    .circle-done {
+      background: var(--success); color: #fff;
+      box-shadow: 0 2px 8px var(--success-dim);
+    }
+    .circle-done:active { background: #257a4a }
+
+    .card-actions { display: flex; gap: 0.5rem; flex-shrink: 0; align-items: center }
 
     /* ── Shortlist cards ── */
     .shortlist-area {
-      padding: 0 clamp(0.5rem, 3vw, 1.5rem); /* generous gutters for scroll safety */
+      padding: 0 clamp(0.5rem, 3vw, 1.5rem);
     }
     .focus-card {
-      touch-action: pan-y; /* allow vertical scroll, drag only via handle */
+      touch-action: pan-y;
       -webkit-user-select: none; user-select: none;
     }
     .focus-card.over {
@@ -171,38 +194,9 @@
       color: var(--text-faint); font-size: 1.1rem; cursor: grab;
       flex-shrink: 0; line-height: 1; letter-spacing: 2px;
       user-select: none; -webkit-user-select: none;
-      touch-action: none; /* handle captures touch for drag */
+      touch-action: none;
     }
     .drag-handle:active { cursor: grabbing }
-
-    /* Shortlist action buttons — remove on LEFT, done on RIGHT */
-    .shortlist-actions { display: flex; gap: 0.35rem; flex-shrink: 0; align-items: center }
-    .remove-btn {
-      width: 1.8rem; height: 1.8rem; border-radius: 0.5rem;
-      border: 1.5px solid var(--border); background: none;
-      color: var(--text-faint); font-size: 0.9rem;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: all 0.15s; flex-shrink: 0;
-    }
-    .remove-btn:active { background: var(--danger-light); border-color: var(--danger); color: var(--danger) }
-    .done-btn {
-      border: 2px solid var(--success); border-radius: 0.5rem;
-      background: none; color: var(--success);
-      cursor: pointer; display: flex; align-items: center; gap: 0.25rem;
-      padding: 0.25rem 0.4rem;
-      font-family: inherit; font-size: clamp(0.65rem, 1.1vw, 0.8rem); font-weight: 700;
-      transition: all 0.15s; flex-shrink: 0; white-space: nowrap;
-    }
-    .done-btn:active { background: var(--success); color: #fff }
-    .done-square {
-      width: 1em; height: 1em; border: 2px solid currentColor;
-      border-radius: 3px; flex-shrink: 0;
-    }
-    .done-btn-label { display: none }
-    @media (min-width: 600px) {
-      .done-btn-label { display: inline }
-      .done-btn { padding: 0.3rem 0.6rem }
-    }
 
     /* ── Build Shortlist floating bar ── */
     .bottom-bar {
@@ -255,13 +249,6 @@
       letter-spacing: 0.08em; text-transform: uppercase;
       color: var(--text-faint); margin-bottom: 0.5rem;
     }
-    .add-more-btn {
-      padding: 0.3rem 0.6rem; border-radius: var(--radius-sm);
-      border: 1.5px solid var(--orange); background: var(--orange-light);
-      color: var(--orange); font-size: clamp(0.65rem, 1vw, 0.8rem);
-      font-weight: 700; cursor: pointer; font-family: inherit;
-      white-space: nowrap;
-    }
 
     /* ── Modal ── */
     .modal-overlay {
@@ -298,7 +285,6 @@
     .modal-input:focus { border-color: var(--orange) }
     .modal-input::placeholder { color: var(--text-faint) }
 
-    /* Toggle row */
     .toggle-row {
       display: flex; align-items: center; gap: 0.7rem;
       margin-bottom: 1rem; cursor: pointer; user-select: none;
@@ -318,7 +304,6 @@
       font-size: clamp(0.75rem, 1.3vw, 0.9rem); color: var(--text-secondary);
     }
 
-    /* Mic button */
     .mic-btn {
       position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
       width: 2.2rem; height: 2.2rem; border-radius: 50%;
@@ -344,6 +329,32 @@
     }
     .modal-save-btn.ready { background: var(--orange); color: #fff; box-shadow: var(--shadow-lg) }
     .modal-save-btn.not-ready { background: var(--bg-inset); color: var(--text-faint); cursor: default }
+
+    /* ── Confirm delete overlay ── */
+    .confirm-overlay {
+      position: fixed; inset: 0; z-index: 250;
+      background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .confirm-box {
+      background: var(--bg-card); border-radius: var(--radius);
+      padding: 1.5rem; max-width: 320px; width: 90%;
+      box-shadow: var(--shadow-lg); text-align: center;
+    }
+    .confirm-text {
+      font-size: clamp(0.9rem, 1.5vw, 1.05rem); font-weight: 700;
+      color: var(--charcoal); margin-bottom: 1rem; line-height: 1.4;
+    }
+    .confirm-actions { display: flex; gap: 0.5rem }
+    .confirm-btn {
+      flex: 1; padding: 0.7rem; border-radius: var(--radius-sm);
+      border: none; font-family: inherit;
+      font-size: clamp(0.8rem, 1.3vw, 0.95rem); font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .confirm-btn.cancel { background: var(--bg-inset); color: var(--text-secondary) }
+    .confirm-btn.delete { background: var(--danger); color: #fff }
+    .confirm-btn.delete:active { background: #c03030 }
 
     /* ── Empty state ── */
     .empty-state {
@@ -385,14 +396,14 @@
 
 <script>
 /* ═════════════════════════════════════════════
-   CONFIG — matches Andi's app credentials
+   CONFIG
    ═════════════════════════════════════════════ */
 const API_BASE = 'https://syujfvdfgvgsawqbzifr.supabase.co/functions/v1';
 const APP_TOKEN = '9f2d7a4c1e8b6f3a0d5c2e9b7a4f1d8c6e3b0a7f5d2c9e6b3a0f7d4c1e8b5a2';
 const LEGACY_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5dWpmdmRmZ3Znc2F3cWJ6aWZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTE2MjYsImV4cCI6MjA5NjI2NzYyNn0.5NiyYi11K-RhwaatxYm1Mf1kb2LF0wndxM1Sscqp3aM';
 
 const OLLIE = 'ollie';
-const LS_KEY = 'ollie_task_sorter_v1';
+const LS_KEY = 'ollie_task_sorter_v2';
 const TODAY = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
 const CAT_COLORS = {
@@ -403,7 +414,7 @@ const CAT_COLORS = {
 };
 
 /* ═════════════════════════════════════════════
-   API HELPERS (match Andi's app patterns)
+   API HELPERS
    ═════════════════════════════════════════════ */
 function apiHeaders(json) {
   const h = { 'x-app-token': APP_TOKEN, 'apikey': LEGACY_ANON_KEY, 'Authorization': 'Bearer ' + LEGACY_ANON_KEY };
@@ -431,6 +442,15 @@ async function markTaskDone(id) {
   const res = await fetch(API_BASE + '/mark-tasks-done', {
     method: 'POST', headers: apiHeaders(true),
     body: JSON.stringify({ id })
+  });
+  if (!res.ok) throw new Error('mark-tasks-done responded with ' + res.status);
+  return res.json();
+}
+
+async function deleteTask(id) {
+  const res = await fetch(API_BASE + '/mark-tasks-done', {
+    method: 'POST', headers: apiHeaders(true),
+    body: JSON.stringify({ id, status: 'pending_delete' })
   });
   if (!res.ok) throw new Error('mark-tasks-done responded with ' + res.status);
   return res.json();
@@ -482,7 +502,7 @@ async function loadTasks() {
 }
 
 /* ═════════════════════════════════════════════
-   DOM HELPERS (same pattern as Andi's app)
+   DOM HELPERS
    ═════════════════════════════════════════════ */
 function el(tag, props, ...children) {
   const e = document.createElement(tag);
@@ -508,56 +528,96 @@ const h2 = (p, ...c) => el('h2', p, ...c);
 const inp = (p) => el('input', p);
 
 /* ═════════════════════════════════════════════
+   CONFIRM DELETE DIALOG
+   ═════════════════════════════════════════════ */
+function showConfirmDelete(task) {
+  const overlay = div({ className: 'confirm-overlay' });
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove() });
+
+  const box = div({ className: 'confirm-box' });
+  box.appendChild(div({ className: 'confirm-text' }, 'Delete "' + task.text + '"?'));
+
+  const actions = div({ className: 'confirm-actions' });
+  const cancelBtn = btn({ className: 'confirm-btn cancel' }, 'Keep it');
+  cancelBtn.addEventListener('click', () => overlay.remove());
+
+  const deleteBtn = btn({ className: 'confirm-btn delete' }, 'Delete');
+  deleteBtn.addEventListener('click', async () => {
+    deleteBtn.textContent = '…';
+    deleteBtn.style.opacity = '0.5';
+    try {
+      await deleteTask(task.id);
+      overlay.remove();
+      const tasks = STATE.tasks.filter(t => t.id !== task.id);
+      const shortlist = STATE.shortlist.filter(id => id !== task.id);
+      const selected = new Set(STATE.selected); selected.delete(task.id);
+      setState({ tasks, shortlist, selected });
+      toast('Deleted');
+    } catch (err) {
+      console.error(err);
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.style.opacity = '';
+      toast('Could not delete — check connection');
+    }
+  });
+
+  actions.appendChild(cancelBtn);
+  actions.appendChild(deleteBtn);
+  box.appendChild(actions);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
+/* ═════════════════════════════════════════════
    DRAG & DROP (shortlist reorder)
    ═════════════════════════════════════════════ */
-const drag = { active: false, id: null, startY: 0, node: null };
+const dragState = { active: false, id: null, startY: 0, node: null };
 
 function touchStart(e, id) {
   e.preventDefault(); e.stopPropagation();
   const t = e.touches[0];
-  drag.active = true; drag.id = id; drag.startY = t.clientY;
-  drag.node = e.currentTarget;
-  drag.node.style.opacity = '0.4';
-  drag.node.style.transform = 'scale(1.02)';
-  drag.node.style.zIndex = '999';
+  dragState.active = true; dragState.id = id; dragState.startY = t.clientY;
+  dragState.node = e.currentTarget.closest('.focus-card');
+  dragState.node.style.opacity = '0.4';
+  dragState.node.style.transform = 'scale(1.02)';
+  dragState.node.style.zIndex = '999';
 }
 
 function touchMove(e) {
-  if (!drag.active) return;
+  if (!dragState.active) return;
   e.preventDefault();
   const t = e.touches[0];
-  drag.node.style.transform = `translateY(${t.clientY - drag.startY}px) scale(1.02)`;
+  dragState.node.style.transform = `translateY(${t.clientY - dragState.startY}px) scale(1.02)`;
   document.querySelectorAll('[data-drag-id]').forEach(n => {
-    if (n === drag.node) return;
+    if (n === dragState.node) return;
     const r = n.getBoundingClientRect();
     n.classList.toggle('over', t.clientY >= r.top && t.clientY <= r.bottom);
   });
 }
 
 function touchEnd(e) {
-  if (!drag.active) return;
-  drag.active = false;
+  if (!dragState.active) return;
+  dragState.active = false;
   const t = e.changedTouches[0];
-  drag.node.style.transform = '';
-  drag.node.style.opacity = '';
-  drag.node.style.zIndex = '';
+  dragState.node.style.transform = '';
+  dragState.node.style.opacity = '';
+  dragState.node.style.zIndex = '';
   document.querySelectorAll('[data-drag-id]').forEach(n => n.classList.remove('over'));
 
   let targetId = null;
   document.querySelectorAll('[data-drag-id]').forEach(n => {
-    if (n === drag.node) return;
+    if (n === dragState.node) return;
     const r = n.getBoundingClientRect();
     if (t.clientY >= r.top && t.clientY <= r.bottom) targetId = n.dataset.dragId;
   });
 
-  if (targetId && targetId !== drag.id) {
+  if (targetId && targetId !== dragState.id) {
     const arr = [...STATE.shortlist];
-    const fi = arr.indexOf(drag.id), ti = arr.indexOf(targetId);
-    arr.splice(fi, 1);
-    arr.splice(ti, 0, drag.id);
+    const fi = arr.indexOf(dragState.id), ti = arr.indexOf(targetId);
+    arr.splice(fi, 1); arr.splice(ti, 0, dragState.id);
     setState({ shortlist: arr });
   }
-  drag.id = null;
+  dragState.id = null;
 }
 
 let deskDragId = null;
@@ -630,10 +690,9 @@ async function toggleMic(inputEl) {
     if (mb) mb.classList.remove('listening');
     return;
   }
-  // Request mic permission explicitly (triggers browser prompt, required for iOS Safari)
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    stream.getTracks().forEach(t => t.stop()); // release — SpeechRecognition manages its own
+    stream.getTracks().forEach(t => t.stop());
   } catch (e) {
     console.warn('Mic permission denied:', e);
     toast('Allow microphone access in your browser settings');
@@ -789,8 +848,6 @@ function buildReview() {
     return em;
   }
 
-  wrap.appendChild(p_({ className: 'hint' }, 'Tap ', el('strong', {}, 'Select'), ' to add tasks to your shortlist.'));
-
   // Group by category dynamically
   const seen = new Set();
   const cats = [];
@@ -818,13 +875,23 @@ function buildReview() {
       }
       card.appendChild(info);
 
-      const b = btn({ className: 'select-btn' + (isSel ? ' selected' : '') }, isSel ? '✓ Selected' : 'Select');
-      b.addEventListener('click', () => {
+      const actions = div({ className: 'card-actions' });
+
+      // Orange + circle (add to shortlist)
+      const addBtn = btn({ className: 'action-circle circle-add' + (isSel ? ' in-shortlist' : '') }, isSel ? '✓' : '+');
+      addBtn.addEventListener('click', () => {
         const s = new Set(STATE.selected);
         s.has(task.id) ? s.delete(task.id) : s.add(task.id);
         setState({ selected: s });
       });
-      card.appendChild(b);
+      actions.appendChild(addBtn);
+
+      // Red − circle (delete)
+      const delBtn = btn({ className: 'action-circle circle-delete' }, '−');
+      delBtn.addEventListener('click', () => showConfirmDelete(task));
+      actions.appendChild(delBtn);
+
+      card.appendChild(actions);
       sec.appendChild(card);
     });
     wrap.appendChild(sec);
@@ -859,14 +926,14 @@ function buildFocus() {
 
     const card = div({ className: 'card focus-card', dataset: { dragId: String(task.id) }, draggable: 'true' });
 
-    // Touch drag via handle
+    // Drag handle
     const handle = span({ className: 'drag-handle' }, '⠿');
     handle.addEventListener('touchstart', e => touchStart(e, task.id), { passive: false });
     handle.addEventListener('touchmove', touchMove, { passive: false });
     handle.addEventListener('touchend', touchEnd);
     card.appendChild(handle);
 
-    // Desktop drag on whole card
+    // Desktop drag
     card.addEventListener('dragstart', e => { deskDragId = task.id; e.dataTransfer.effectAllowed = 'move' });
     card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('over') });
     card.addEventListener('dragleave', () => card.classList.remove('over'));
@@ -886,23 +953,11 @@ function buildFocus() {
     info.appendChild(div({ className: 'task-cat-label' }, task.cat));
     card.appendChild(info);
 
-    // Actions: remove (LEFT) then done (RIGHT)
-    const actions = div({ className: 'shortlist-actions' });
-
-    const rb = btn({ className: 'remove-btn' }, '×');
-    rb.addEventListener('click', e => {
+    // Green ✓ circle (mark done)
+    const doneBtn = btn({ className: 'action-circle circle-done' }, '✓');
+    doneBtn.addEventListener('click', async e => {
       e.stopPropagation();
-      const s = new Set(STATE.selected); s.delete(task.id);
-      setState({ selected: s, shortlist: STATE.shortlist.filter(id => id !== task.id) });
-    });
-    actions.appendChild(rb);
-
-    const db = btn({ className: 'done-btn' });
-    db.appendChild(div({ className: 'done-square' }));
-    db.appendChild(span({ className: 'done-btn-label' }, 'Mark Done'));
-    db.addEventListener('click', async e => {
-      e.stopPropagation();
-      db.style.opacity = '0.4'; db.style.pointerEvents = 'none';
+      doneBtn.style.opacity = '0.4'; doneBtn.style.pointerEvents = 'none';
       try {
         await markTaskDone(task.id);
         const tasks = STATE.tasks.filter(t => t.id !== task.id);
@@ -911,13 +966,13 @@ function buildFocus() {
         setState({ tasks, shortlist, selected });
         toast('Done! ✓');
       } catch (err) {
-        console.error(err); db.style.opacity = ''; db.style.pointerEvents = '';
+        console.error(err);
+        doneBtn.style.opacity = ''; doneBtn.style.pointerEvents = '';
         toast('Could not mark done — check connection');
       }
     });
-    actions.appendChild(db);
+    card.appendChild(doneBtn);
 
-    card.appendChild(actions);
     list.appendChild(card);
   });
 
@@ -929,9 +984,9 @@ function buildFocus() {
     const sec = div({ className: 'add-more-section' });
     sec.appendChild(p_({ className: 'add-more-label' }, 'Add more to shortlist'));
     extras.forEach(task => {
-      const row = div({ className: 'card', style: { opacity: '0.6' } });
+      const row = div({ className: 'card', style: { opacity: '0.65' } });
       row.appendChild(div({ className: 'task-text', style: { flex: '1' } }, task.text));
-      const ab = btn({ className: 'add-more-btn' }, '+ Add');
+      const ab = btn({ className: 'action-circle circle-add', style: { width: '2.2rem', height: '2.2rem', fontSize: '1.1rem' } }, '+');
       ab.addEventListener('click', () => {
         const s = new Set(STATE.selected); s.add(task.id);
         setState({ shortlist: [...STATE.shortlist, task.id], selected: s });
@@ -954,7 +1009,6 @@ function render() {
   body.innerHTML = '';
   body.appendChild(STATE.mode === 'review' ? buildReview() : buildFocus());
 
-  // Remove old floating bars
   document.querySelectorAll('.bottom-bar, .shortlist-bottom-bar').forEach(e => e.remove());
 
   if (STATE.mode === 'review') {
@@ -979,7 +1033,6 @@ function render() {
     document.body.appendChild(bar);
   }
 
-  // Modal
   document.querySelectorAll('.modal-overlay').forEach(e => e.remove());
   if (STATE.modalOpen) document.body.appendChild(buildModal());
 }
