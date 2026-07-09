@@ -886,17 +886,28 @@ async function toggleMic(inputEl) {
 const hasSpeech = initSpeech();
 
 /* ═════════════════════════════════════════════
-   MEME MODAL 🫠
+   MEME MODAL 🫠 (Giphy)
    ═════════════════════════════════════════════ */
+const GIPHY_KEY = 'dc6zaTOxFJmzC'; // public beta key
+const WEIRD_TAGS = ['surreal meme', 'cursed image', 'weird animal', 'absurd funny', 'deep fried meme', 'confusing perspective', 'weird gif', 'oddly satisfying fail', 'chaotic energy'];
+
 async function getRandomMeme() {
   try {
-    const res = await fetch(API_BASE + '/random-meme', {
-      headers: { 'apikey': LEGACY_ANON_KEY, 'Authorization': 'Bearer ' + LEGACY_ANON_KEY }
-    });
-    if (!res.ok) throw new Error('random-meme responded with ' + res.status);
+    const tag = WEIRD_TAGS[Math.floor(Math.random() * WEIRD_TAGS.length)];
+    const offset = Math.floor(Math.random() * 100);
+    const res = await fetch(
+      `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${encodeURIComponent(tag)}&limit=25&offset=${offset}&rating=pg-13&lang=en`
+    );
+    if (!res.ok) throw new Error('Giphy responded with ' + res.status);
     const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    return data; // { url, title, sub }
+    const gifs = (data.data || []).filter(g => g.images?.original?.url);
+    if (!gifs.length) return null;
+    const pick = gifs[Math.floor(Math.random() * gifs.length)];
+    return {
+      url: pick.images.original.url,
+      title: pick.title || 'no caption needed',
+      sub: tag
+    };
   } catch (err) {
     console.warn('Meme fetch error:', err);
     return null;
@@ -958,7 +969,7 @@ async function loadMemeInto(bodyEl, subEl) {
     bodyEl.appendChild(div({ className: 'meme-error' }, 'Image failed to load — try another'));
   };
   bodyEl.appendChild(img);
-  subEl.textContent = meme.sub;
+  subEl.textContent = '🔍 ' + meme.sub;
 }
 
 /* ═════════════════════════════════════════════
