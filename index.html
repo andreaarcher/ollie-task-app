@@ -1165,7 +1165,7 @@ function buildReview() {
       const info = div({ style: { flex: '1' } });
       info.appendChild(div({ className: 'task-text' }, task.text));
       if (task.for_person === 'ollie' && task.speaker !== 'ollie') {
-        info.appendChild(div({ className: 'task-origin' }, 'assigned to you'));
+        info.appendChild(div({ className: 'task-origin' }, "Ollie's to do"));
       }
       card.appendChild(info);
 
